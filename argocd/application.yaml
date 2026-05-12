@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/tejas261/go-job-runner-gitops.git
     targetRevision: HEAD
-    path: charts/job-runner
+    path: job-runner-chart/Chart.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: job-runner
