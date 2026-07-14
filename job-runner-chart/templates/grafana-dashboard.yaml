@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.fullnameOverride | default "job-runner" }}-dashboard
+  labels:
+    app.kubernetes.io/name: job-runner
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    # Picked up by the kube-prometheus-stack Grafana sidecar
+    # (sidecar.dashboards.searchNamespace: ALL).
+    grafana_dashboard: "1"
+data:
+  job-runner.json: |-
+{{ .Files.Get "dashboards/job-runner.json" | indent 4 }}

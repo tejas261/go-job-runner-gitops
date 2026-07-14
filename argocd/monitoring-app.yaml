@@ -1,0 +1,88 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 87.15.2
+    helm:
+      values: |
+        fullnameOverride: monitoring
+
+        prometheus:
+          prometheusSpec:
+            retention: 3d
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+            # Scrape any pod in the job-runner namespace that carries the
+            # prometheus.io/scrape annotations set by the job-runner chart.
+            additionalScrapeConfigs:
+              - job_name: job-runner-pods
+                kubernetes_sd_configs:
+                  - role: pod
+                    namespaces:
+                      names: [job-runner]
+                relabel_configs:
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: "true"
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                    action: replace
+                    regex: (.+)
+                    target_label: __metrics_path__
+                  - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                    action: replace
+                    regex: ([^:]+)(?::\d+)?;(\d+)
+                    replacement: $1:$2
+                    target_label: __address__
+                  - source_labels: [__meta_kubernetes_namespace]
+                    target_label: namespace
+                  - source_labels: [__meta_kubernetes_pod_name]
+                    target_label: pod
+
+        grafana:
+          # Default admin password is generated into the monitoring-grafana
+          # secret; retrieve with:
+          #   kubectl -n monitoring get secret monitoring-grafana \
+          #     -o jsonpath='{.data.admin-password}' | base64 -d
+          sidecar:
+            dashboards:
+              enabled: true
+              searchNamespace: ALL   # find dashboard ConfigMaps in app namespaces
+            datasources:
+              uid: prometheus        # stable UID so committed dashboards resolve
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+
+        alertmanager:
+          alertmanagerSpec:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # kube-prometheus-stack CRDs exceed the client-side-apply annotation
+      # size limit; server-side apply is required.
+      - ServerSideApply=true
