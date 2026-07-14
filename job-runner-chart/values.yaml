@@ -9,7 +9,7 @@ replicaCount: 2
 image:
   repository: docker.io/tejas261/job-runner
   pullPolicy: IfNotPresent
-  tag: f13ea7df74669f4031a7d314db1e4765ac0737dc
+  tag: c6a332f98f42b4b71f9f0239497a4079d2a0c4bf
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets:
