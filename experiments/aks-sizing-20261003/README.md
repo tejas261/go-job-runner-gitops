@@ -12,6 +12,6 @@ Changing requests is not itself a cloud saving. Short runs establish detection i
 
 The single-node test has a 30-pod limit. Argo CD ApplicationSet, Dex and notifications controllers are scaled to zero (plain Applications and local access only). The monitoring override disables Alertmanager and node-exporter while retaining Prometheus, kube-state-metrics, kubelet/container metrics and Grafana. These are experiment-only resource constraints.
 
-The initial 8Mi limit remained running under light validation traffic. It was tightened to 4Mi after metrics showed a 7–9Mi working set, to test a clear memory-capacity failure rather than assume one occurred.
+The 8Mi limit permits startup but caused an observed OOM during the bounded 128-URL internal health-check job. The control and oversized copies completed the same job. The undersized worker restarted with its interrupted job still in `processing`; memory sizing alone does not repair job recovery semantics. All jobs and databases are synthetic test data.
 
-At 4Mi, Kubernetes failed to create the pod sandbox, which does not establish a container OOM. The final experiment restores 8Mi and uses a bounded 128-URL health-check job against each deployment’s own namespace service to test real application memory pressure.
+Test workloads use numeric UID/GID 65532 and Recreate deployments to avoid surge deadlocks at the 30-pod node limit. These settings are isolated from the normal chart defaults.
