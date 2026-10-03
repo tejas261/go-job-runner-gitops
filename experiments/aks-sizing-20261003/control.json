@@ -1,0 +1,64 @@
+{
+  "replicaCount": 1,
+  "image": {
+    "repository": "ccajobrunner261003.azurecr.io/job-runner",
+    "tag": "aks-test-20261003@sha256:134e69246267abd7efeeed4613bb29bd79e6082b42ec6f6c8257f98bd26abbd4",
+    "pullPolicy": "Always"
+  },
+  "imagePullSecrets": [],
+  "sealedSecretsEnabled": false,
+  "validation": {
+    "enabled": true
+  },
+  "fullnameOverride": "job-runner",
+  "podAnnotations": {
+    "prometheus.io/scrape": "true",
+    "prometheus.io/port": "5000",
+    "prometheus.io/path": "/metrics",
+    "cca.dependencies": "postgres"
+  },
+  "podLabels": {
+    "environment": "disposable-test"
+  },
+  "securityContext": {
+    "allowPrivilegeEscalation": false,
+    "readOnlyRootFilesystem": true,
+    "runAsNonRoot": true,
+    "capabilities": {
+      "drop": [
+        "ALL"
+      ]
+    }
+  },
+  "podSecurityContext": {
+    "seccompProfile": {
+      "type": "RuntimeDefault"
+    }
+  },
+  "livenessProbe": {
+    "httpGet": {
+      "path": "/health",
+      "port": "http"
+    },
+    "initialDelaySeconds": 15,
+    "periodSeconds": 10
+  },
+  "readinessProbe": {
+    "httpGet": {
+      "path": "/health",
+      "port": "http"
+    },
+    "initialDelaySeconds": 5,
+    "periodSeconds": 5
+  },
+  "resources": {
+    "requests": {
+      "cpu": "20m",
+      "memory": "32Mi"
+    },
+    "limits": {
+      "cpu": "250m",
+      "memory": "128Mi"
+    }
+  }
+}

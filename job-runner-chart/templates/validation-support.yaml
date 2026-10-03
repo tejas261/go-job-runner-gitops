@@ -1,0 +1,54 @@
+{{- if .Values.validation.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: validation-schema
+  annotations: {argocd.argoproj.io/sync-wave: "-2"}
+data:
+  001-schema.sql: |
+{{ .Files.Get "files/validation-schema.sql" | indent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  annotations: {argocd.argoproj.io/sync-wave: "-1"}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: postgres}
+  template:
+    metadata:
+      labels: {app: postgres}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: postgres:17.6-alpine
+          envFrom:
+            - secretRef: {name: validation-database}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 384Mi}
+          readinessProbe:
+            exec: {command: [pg_isready, -U, runner, -d, runner]}
+            initialDelaySeconds: 5
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: schema, mountPath: /docker-entrypoint-initdb.d}
+      volumes:
+        - name: data
+          emptyDir: {sizeLimit: 1Gi}
+        - name: schema
+          configMap: {name: validation-schema}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  annotations: {argocd.argoproj.io/sync-wave: "-1"}
+spec:
+  selector: {app: postgres}
+  ports: [{port: 5432, targetPort: 5432}]
+{{- end }}

@@ -152,3 +152,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Existing cluster sealing keys are used by default. Test clusters supply their own sealed secrets.
+sealedSecretsEnabled: true
+validation:
+  enabled: false

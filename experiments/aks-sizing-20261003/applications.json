@@ -1,0 +1,111 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "job-runner-control",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "source": {
+          "repoURL": "https://github.com/tejas261/go-job-runner-gitops.git",
+          "targetRevision": "experiment/aks-sizing-20261003",
+          "path": "job-runner-chart",
+          "helm": {
+            "releaseName": "job-runner-control",
+            "valueFiles": [
+              "../experiments/aks-sizing-20261003/control.json"
+            ]
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "job-runner-control"
+        },
+        "syncPolicy": {
+          "automated": {
+            "prune": true,
+            "selfHeal": true
+          },
+          "syncOptions": [
+            "CreateNamespace=true"
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "job-runner-oversized",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "source": {
+          "repoURL": "https://github.com/tejas261/go-job-runner-gitops.git",
+          "targetRevision": "experiment/aks-sizing-20261003",
+          "path": "job-runner-chart",
+          "helm": {
+            "releaseName": "job-runner-oversized",
+            "valueFiles": [
+              "../experiments/aks-sizing-20261003/oversized.json"
+            ]
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "job-runner-oversized"
+        },
+        "syncPolicy": {
+          "automated": {
+            "prune": true,
+            "selfHeal": true
+          },
+          "syncOptions": [
+            "CreateNamespace=true"
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "job-runner-undersized",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "source": {
+          "repoURL": "https://github.com/tejas261/go-job-runner-gitops.git",
+          "targetRevision": "experiment/aks-sizing-20261003",
+          "path": "job-runner-chart",
+          "helm": {
+            "releaseName": "job-runner-undersized",
+            "valueFiles": [
+              "../experiments/aks-sizing-20261003/undersized.json"
+            ]
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "job-runner-undersized"
+        },
+        "syncPolicy": {
+          "automated": {
+            "prune": true,
+            "selfHeal": true
+          },
+          "syncOptions": [
+            "CreateNamespace=true"
+          ]
+        }
+      }
+    }
+  ]
+}
